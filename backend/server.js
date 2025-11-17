@@ -1,30 +1,34 @@
-import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import dotenv from "dotenv";
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const connectDB = require('./config/db');
 
-import atletaRoutes from "./routes/atletas.js";
-import fisioRoutes from "./routes/fisios.js";
-import diagnosticoRoutes from "./routes/diagnosticos.js";
-import agendamentoRoutes from "./routes/agendamentos.js";
+// Importar rotas
+const atletaRoutes = require('./routes/atletaRoutes');
+const fisioterapeutaRoutes = require('./routes/fisioterapeutaRoutes');
+const diagnosticoRoutes = require('./routes/diagnosticoRoutes');
+const anamneseRoutes = require('./routes/anamneseRoutes');
+const exameRoutes = require('./routes/exameRoutes');
+const agendamentoRoutes = require('./routes/agendamentoRoutes'); // Nova rota
 
-dotenv.config();
+// Conectar ao Banco de Dados
+connectDB();
+
 const app = express();
 
+// Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Para parsear JSON no corpo das requisições
 
-// Rotas
-app.use("/api/atletas", atletaRoutes);
-app.use("/api/fisios", fisioRoutes);
-app.use("/api/diagnosticos", diagnosticoRoutes);
-app.use("/api/agendamentos", agendamentoRoutes);
+// Rotas da API
+app.use('/api/atletas', atletaRoutes);
+app.use('/api/fisioterapeutas', fisioterapeutaRoutes);
+app.use('/api/diagnosticos', diagnosticoRoutes);
+app.use('/api/anamneses', anamneseRoutes);
+app.use('/api/exames', exameRoutes);
+app.use('/api/agendamentos', agendamentoRoutes); // Usar a nova rota
 
-// Conexão com MongoDB
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB conectado"))
-  .catch((err) => console.log("❌ Erro MongoDB:", err));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

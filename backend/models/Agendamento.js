@@ -1,11 +1,22 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
-const agendamentoSchema = new mongoose.Schema({
-  atletaId: { type: mongoose.Schema.Types.ObjectId, ref: "Atleta" },
-  fisioId: { type: mongoose.Schema.Types.ObjectId, ref: "Fisioterapeuta" },
-  data: String,
-  horario: String,
-  observacao: String,
+const agendamentoSchema = mongoose.Schema({
+  atleta: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'Atleta',
+  },
+  fisioterapeuta: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'Fisioterapeuta',
+  },
+  dataConsulta: { type: Date, required: true },
+  horarioConsulta: { type: String, required: true }, // Ex: "09:00", "14:30"
+  tipoConsulta: { type: String, required: true }, // Ex: "Avaliação", "Retorno", "Terapia"
+  observacoes: { type: String },
 });
 
-export default mongoose.model("Agendamento", agendamentoSchema);
+const Agendamento = mongoose.model('Agendamento', agendamentoSchema);
+
+module.exports = Agendamento;

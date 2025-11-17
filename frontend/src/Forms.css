@@ -1,0 +1,125 @@
+/* Estilos Gerais de Formulário */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Garante que padding não aumente a largura */
+  font-size: 1em;
+}
+
+.form-group textarea {
+  resize: vertical; /* Permite redimensionar verticalmente */
+}
+
+button[type="submit"],
+button[type="button"] {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover,
+button[type="button"]:hover {
+  background-color: #0056b3;
+}
+
+button[type="button"] {
+  background-color: #6c757d;
+}
+
+button[type="button"]:hover {
+  background-color: #5a6268;
+}
+
+
+/* Estilos de Tabela */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table thead th {
+  background-color: #f2f2f2;
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+table td button {
+  padding: 5px 10px;
+  margin-right: 5px;
+  font-size: 0.9em;
+}
+
+table td a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+table td a:hover {
+  text-decoration: underline;
+}
+
+/* Estilos para o grid de dados (ViewExame) */
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fefefe;
+}
+
+.data-item {
+  padding: 5px 0;
+}
+
+.data-item strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #333;
+}
+
+.data-item.full-width {
+  grid-column: 1 / -1; /* Ocupa todas as colunas */
+}

@@ -1,10 +1,11 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
-const diagnosticoSchema = new mongoose.Schema({
-  atletaId: { type: mongoose.Schema.Types.ObjectId, ref: "Atleta" },
-  descricao: String,
-  laudoDigitalizado: String, // URL ou base64
-  data: { type: Date, default: Date.now },
+const diagnosticoSchema = mongoose.Schema({
+  diagnostico: { type: String, required: true, unique: true }, // Nome do diagnóstico
+  descricao: { type: String, required: true },
+  planoTratamento: { type: String, required: true },
 });
 
-export default mongoose.model("Diagnostico", diagnosticoSchema);
+const Diagnostico = mongoose.model('Diagnostico', diagnosticoSchema);
+
+module.exports = Diagnostico;
