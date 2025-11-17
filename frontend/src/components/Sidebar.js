@@ -6,7 +6,7 @@ const Sidebar = () => {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h3>FISIO SYSTEM</h3>
+        <h3>Corpore</h3>
       </div>
       <ul className="sidebar-menu">
         <li>
