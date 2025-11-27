@@ -4,6 +4,7 @@ const atletaSchema = mongoose.Schema({
   nome: { type: String, required: true },
   sexo: { type: String, required: true },
   dataNascimento: { type: Date, required: true },
+  endereco: { type: String }, // Campo adicionado
   equipe: { type: String },
   uf: { type: String },
   rg: { type: String },

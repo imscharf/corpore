@@ -1,50 +1,77 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaUser, FaCalendarAlt, FaStethoscope, FaChartBar, FaUserTie } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  FaUserPlus, 
+  FaCalendarAlt, 
+  FaStethoscope, 
+  FaSignOutAlt, 
+  FaMoon, 
+  FaSun, 
+  FaChevronDown, 
+  FaChevronUp 
+} from 'react-icons/fa';
+import '../Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ theme, toggleTheme }) => {
+  const [cadastroOpen, setCadastroOpen] = useState(true);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Lógica de logout aqui
+    alert("Saindo do sistema...");
+    navigate('/');
+  };
+
   return (
     <div className="sidebar">
-      <div className="sidebar-header">
-        <h3>Corpore</h3>
+      <div className="sidebar-logo">
+        CORPORE
       </div>
+      
       <ul className="sidebar-menu">
+        {/* Menu Cadastro com Submenu */}
         <li>
-          <Link to="/">
-            <FaChartBar /> Dashboard Fisioterapeuta
-          </Link>
-        </li>
-        <li>
-          <Link to="/atleta">
-            <FaUser /> Dashboard Atleta
-          </Link>
-        </li>
-        <li>
-          <Link to="/dirigente">
-            <FaUserTie /> Dashboard Dirigente
-          </Link>
+          <div className="menu-group-label" onClick={() => setCadastroOpen(!cadastroOpen)}>
+            <FaUserPlus /> 
+            <span style={{flexGrow: 1}}>Cadastro</span>
+            {cadastroOpen ? <FaChevronUp size={12}/> : <FaChevronDown size={12}/>}
+          </div>
+          {cadastroOpen && (
+            <ul className="submenu">
+              <li>
+                <Link to="/cadastro/atleta">Atleta</Link>
+              </li>
+              <li>
+                <Link to="/cadastro/fisioterapeuta">Fisioterapeuta</Link>
+              </li>
+            </ul>
+          )}
         </li>
 
-        <li className="menu-group">
-          <FaUser /> Cadastro
-          <ul>
-            <li><Link to="/cadastro/atleta">Atleta</Link></li>
-            <li><Link to="/cadastro/diagnostico">Diagnóstico</Link></li>
-            <li><Link to="/cadastro/anamnese">Anamnese</Link></li>
-            {/* Poderia ter cadastro de Fisioterapeuta e Dirigente aqui também se necessário */}
-          </ul>
-        </li>
+        {/* Agendamentos */}
         <li>
           <Link to="/agendamentos">
             <FaCalendarAlt /> Agendamentos
           </Link>
         </li>
+
+        {/* Exames */}
         <li>
           <Link to="/exames">
             <FaStethoscope /> Exames
           </Link>
         </li>
       </ul>
+
+      <div className="sidebar-footer">
+        <button className="footer-btn" onClick={toggleTheme}>
+          {theme === 'light' ? <FaMoon /> : <FaSun />}
+          {theme === 'light' ? 'Modo Escuro' : 'Modo Claro'}
+        </button>
+        <button className="footer-btn" onClick={handleLogout}>
+          <FaSignOutAlt /> Sair
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,8 +1,6 @@
 const Atleta = require('../models/Atleta');
 
 // @desc    Get all atletas
-// @route   GET /api/atletas
-// @access  Public (for now)
 const getAtletas = async (req, res) => {
   try {
     const atletas = await Atleta.find({});
@@ -13,8 +11,6 @@ const getAtletas = async (req, res) => {
 };
 
 // @desc    Get atleta by ID
-// @route   GET /api/atletas/:id
-// @access  Public
 const getAtletaById = async (req, res) => {
   try {
     const atleta = await Atleta.findById(req.params.id);
@@ -29,35 +25,34 @@ const getAtletaById = async (req, res) => {
 };
 
 // @desc    Create a new atleta
-// @route   POST /api/atletas
-// @access  Public
 const createAtleta = async (req, res) => {
+  // Destructurando todos os campos possíveis
   const {
-    nome, sexo, dataNascimento, equipe, uf, rg, cpf, peso, altura,
+    nome, sexo, dataNascimento, endereco, equipe, uf, rg, cpf, peso, altura,
     email, telefone, horasTreinamento, inicioCarreira, historicoLesoes,
     tratamentosRealizados
   } = req.body;
 
   try {
     const atleta = new Atleta({
-      nome, sexo, dataNascimento, equipe, uf, rg, cpf, peso, altura,
+      nome, sexo, dataNascimento, endereco, equipe, uf, rg, cpf, peso, altura,
       email, telefone, horasTreinamento, inicioCarreira, historicoLesoes,
       tratamentosRealizados
     });
 
     const createdAtleta = await atleta.save();
-    res.status(201).json(createdAtAtleta);
+    res.status(201).json(createdAtleta);
   } catch (error) {
+    // Retorna o erro exato do banco para ajudar no debug (ex: cpf duplicado)
     res.status(400).json({ message: error.message });
   }
 };
 
 // @desc    Update an atleta
-// @route   PUT /api/atletas/:id
-// @access  Public
 const updateAtleta = async (req, res) => {
+  // ... lógica de destructuring similar ao create
   const {
-    nome, sexo, dataNascimento, equipe, uf, rg, cpf, peso, altura,
+    nome, sexo, dataNascimento, endereco, equipe, uf, rg, cpf, peso, altura,
     email, telefone, horasTreinamento, inicioCarreira, historicoLesoes,
     tratamentosRealizados
   } = req.body;
@@ -69,12 +64,14 @@ const updateAtleta = async (req, res) => {
       atleta.nome = nome || atleta.nome;
       atleta.sexo = sexo || atleta.sexo;
       atleta.dataNascimento = dataNascimento || atleta.dataNascimento;
+      atleta.endereco = endereco || atleta.endereco; // Atualiza endereço
+      // ... atualiza os demais campos
       atleta.equipe = equipe || atleta.equipe;
       atleta.uf = uf || atleta.uf;
       atleta.rg = rg || atleta.rg;
       atleta.cpf = cpf || atleta.cpf;
       atleta.peso = peso || atleta.peso;
-      atleta.peso = altura || atleta.altura;
+      atleta.altura = altura || atleta.altura;
       atleta.email = email || atleta.email;
       atleta.telefone = telefone || atleta.telefone;
       atleta.horasTreinamento = horasTreinamento || atleta.horasTreinamento;
@@ -85,7 +82,7 @@ const updateAtleta = async (req, res) => {
       const updatedAtleta = await atleta.save();
       res.json(updatedAtleta);
     } else {
-      res.status(404).json({ message: 'Atleta not found' });
+      res.status(404).json({ message: 'Atleta não encontrado' });
     }
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -93,14 +90,11 @@ const updateAtleta = async (req, res) => {
 };
 
 // @desc    Delete an atleta
-// @route   DELETE /api/atletas/:id
-// @access  Public
 const deleteAtleta = async (req, res) => {
   try {
     const atleta = await Atleta.findById(req.params.id);
-
     if (atleta) {
-      await atleta.deleteOne(); // Use deleteOne for Mongoose 6+
+      await atleta.deleteOne();
       res.json({ message: 'Atleta removed' });
     } else {
       res.status(404).json({ message: 'Atleta not found' });

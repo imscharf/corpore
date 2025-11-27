@@ -1,116 +1,307 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
 import exameService from '../services/exameService';
+import atletaService from '../services/atletaService';
+import fisioterapeutaService from '../services/fisioterapeutaService';
 
-const ViewExame = () => {
-  const { id } = useParams(); // Pega o ID do exame da URL
-  const [exame, setExame] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const ViewExame = ({ mode = 'view' }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isCreateMode = mode === 'create';
+  
+  // Estado das Abas: 'dados' ou 'diagnostico'
+  const [activeTab, setActiveTab] = useState('dados');
 
+  // Estado do Formulário
+  const [formData, setFormData] = useState({
+    atleta: '',
+    fisioterapeuta: '',
+    tipoExame: '',
+    dataExame: new Date().toISOString().split('T')[0],
+    status: 'Em Andamento',
+    resultado: '', // Campo livre para diagnóstico
+    laudoLiberado: false
+  });
+
+  // Listas para os selects
+  const [atletas, setAtletas] = useState([]);
+  const [fisioterapeutas, setFisioterapeutas] = useState([]);
+
+  // Carregar dados iniciais
   useEffect(() => {
-    const fetchExame = async () => {
+    const loadDependencies = async () => {
       try {
-        const data = await exameService.getExameById(id);
-        setExame(data);
-        setLoading(false);
+        const [atletasData, fisiosData] = await Promise.all([
+          atletaService.getAtletas(),
+          fisioterapeutaService.getFisioterapeutas()
+        ]);
+        setAtletas(atletasData);
+        setFisioterapeutas(fisiosData);
       } catch (err) {
-        setError('Erro ao carregar detalhes do exame.');
-        console.error(err);
-        setLoading(false);
+        console.error("Erro ao carregar listas", err);
       }
     };
-    fetchExame();
-  }, [id]);
+    loadDependencies();
 
-  const handleLiberarLaudo = async () => {
-    if (window.confirm('Deseja realmente liberar este laudo para o atleta?')) {
-      try {
-        const updatedExame = await exameService.updateExame(id, { laudoLiberado: true, status: 'Liberado' });
-        setExame(updatedExame);
-        alert('Laudo liberado com sucesso!');
-      } catch (err) {
-        console.error('Erro ao liberar laudo:', err);
-        alert('Erro ao liberar laudo.');
+    if (!isCreateMode && id) {
+      const loadExame = async () => {
+        try {
+          const exame = await exameService.getExameById(id);
+          // Tratamento para garantir que pegamos o ID se o objeto vier populado
+          const atletaId = exame.atleta && exame.atleta._id ? exame.atleta._id : exame.atleta;
+          const fisioId = exame.fisioterapeuta && exame.fisioterapeuta._id ? exame.fisioterapeuta._id : exame.fisioterapeuta;
+          
+          setFormData({
+            ...exame,
+            atleta: atletaId || '',
+            fisioterapeuta: fisioId || '',
+            dataExame: new Date(exame.dataExame).toISOString().split('T')[0]
+          });
+        } catch (err) {
+          console.error("Erro ao carregar exame", err);
+        }
+      };
+      loadExame();
+    }
+  }, [id, isCreateMode]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    try {
+      if (isCreateMode) {
+        const newExame = await exameService.createExame(formData);
+        alert('Exame cadastrado com sucesso!');
+        navigate(`/exames/${newExame._id}`);
+      } else {
+        await exameService.updateExame(id, formData);
+        alert('Exame atualizado com sucesso!');
       }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao salvar exame.');
     }
   };
 
-  if (loading) return <div>Carregando detalhes do exame...</div>;
-  if (error) return <div>{error}</div>;
-  if (!exame) return <div>Exame não encontrado.</div>;
+  // Função de Geração de PDF
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    
+    // Buscar nomes completos baseados nos IDs selecionados
+    const atletaObj = atletas.find(a => a._id === formData.atleta);
+    const atletaNome = atletaObj?.nome || 'Não informado';
+    
+    const fisioObj = fisioterapeutas.find(f => f._id === formData.fisioterapeuta);
+    const fisioNome = fisioObj?.nome || 'Não informado';
+    const fisioCrefito = fisioObj?.crefito || '';
 
-  // Helper para formatar data
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    return new Date(dateString).toLocaleDateString('pt-BR', options);
-  };
+    // --- Cabeçalho do PDF ---
+    doc.setFontSize(22);
+    doc.setTextColor(0, 86, 179); // Azul
+    doc.text("CORPORE - Relatório Clínico", 105, 20, null, null, "center");
+    
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 25, 190, 25);
 
-  // Helper para formatar data e hora
-  const formatDateTime = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('pt-BR', options);
+    // --- Informações Gerais ---
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    
+    // Data
+    doc.setFont("helvetica", "bold");
+    doc.text(`Data do Exame:`, 20, 40);
+    doc.setFont("helvetica", "normal");
+    doc.text(new Date(formData.dataExame).toLocaleDateString('pt-BR'), 60, 40);
+
+    // Paciente
+    doc.setFont("helvetica", "bold");
+    doc.text(`Paciente (Atleta):`, 20, 50);
+    doc.setFont("helvetica", "normal");
+    doc.text(atletaNome, 60, 50);
+
+    // Fisioterapeuta
+    doc.setFont("helvetica", "bold");
+    doc.text(`Fisioterapeuta:`, 20, 60);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${fisioNome} (CREFITO: ${fisioCrefito})`, 60, 60);
+
+    // Tipo
+    doc.setFont("helvetica", "bold");
+    doc.text(`Tipo de Exame:`, 20, 70);
+    doc.setFont("helvetica", "normal");
+    doc.text(formData.tipoExame, 60, 70);
+
+    // Linha divisória
+    doc.line(20, 80, 190, 80);
+
+    // --- Diagnóstico ---
+    doc.setFontSize(16);
+    doc.setTextColor(0, 86, 179);
+    doc.text("Diagnóstico / Laudo", 20, 95);
+
+    doc.setFontSize(12);
+    doc.setTextColor(50, 50, 50);
+    doc.setFont("helvetica", "normal");
+    
+    // Quebra de texto automática
+    const textLines = doc.splitTextToSize(formData.resultado || "Sem diagnóstico informado.", 170);
+    doc.text(textLines, 20, 105);
+
+    // Salvar arquivo
+    doc.save(`Laudo_${atletaNome.replace(/\s+/g, '_')}.pdf`);
   };
 
   return (
-    <div>
-      <h2>Detalhes do Exame ({exame.tipoExame})</h2>
+    <form onSubmit={handleSave}>
+      <h2>{isCreateMode ? 'Novo Exame' : 'Detalhes do Exame'}</h2>
 
-      {/* Abas - Faremos simples por enquanto */}
-      <div className="tabs-container">
-        <button className="tab-button active">Dados do Atleta</button>
-        <button className="tab-button">Anamnese</button>
-        <button className="tab-button">Diagnóstico</button>
-        <button className="tab-button">Histórico</button>
-        <button className="tab-button">Laudo</button>
+      {/* --- BOTÕES DE AÇÃO (Topo Esquerdo) --- */}
+      <div className="action-buttons">
+         <button type="submit" className="btn btn-success">
+            Salvar
+         </button>
+         <button 
+            type="button" 
+            className="btn btn-danger" 
+            onClick={() => navigate('/exames')}
+         >
+            {isCreateMode ? 'Cancelar' : 'Voltar'}
+         </button>
       </div>
 
-      {/* Conteúdo da aba "Dados do Atleta" (Pág 5 do PDF) */}
-      <div className="tab-content">
-        <h3>Dados do Atleta</h3>
-        <div className="data-grid">
-          <div className="data-item"><strong>Nome:</strong> {exame.atleta?.nome}</div>
-          <div className="data-item"><strong>Sexo:</strong> {exame.atleta?.sexo}</div>
-          <div className="data-item"><strong>Data Nasc.:</strong> {formatDate(exame.atleta?.dataNascimento)}</div>
-          <div className="data-item"><strong>Equipe:</strong> {exame.atleta?.equipe || 'N/A'}</div>
-          <div className="data-item"><strong>UF:</strong> {exame.atleta?.uf || 'N/A'}</div>
-          <div className="data-item"><strong>RG:</strong> {exame.atleta?.rg || 'N/A'}</div>
-          <div className="data-item"><strong>CPF:</strong> {exame.atleta?.cpf}</div>
-          <div className="data-item"><strong>Peso:</strong> {exame.atleta?.peso ? `${exame.atleta.peso} kg` : 'N/A'}</div>
-          <div className="data-item"><strong>Altura:</strong> {exame.atleta?.altura ? `${exame.atleta.altura} m` : 'N/A'}</div>
-          <div className="data-item"><strong>Email:</strong> {exame.atleta?.email}</div>
-          <div className="data-item"><strong>Telefone:</strong> {exame.atleta?.telefone || 'N/A'}</div>
-          <div className="data-item"><strong>Horas Treino:</strong> {exame.atleta?.horasTreinamento || 'N/A'}</div>
-          <div className="data-item"><strong>Início Carreira:</strong> {formatDate(exame.atleta?.inicioCarreira)}</div>
-          <div className="data-item full-width"><strong>Histórico Lesões:</strong> {exame.atleta?.historicoLesoes || 'N/A'}</div>
-          <div className="data-item full-width"><strong>Tratamentos Realizados:</strong> {exame.atleta?.tratamentosRealizados || 'N/A'}</div>
-        </div>
+      {/* --- NAVEGAÇÃO DE ABAS --- */}
+      <div className="tabs-header">
+        <button 
+          type="button"
+          className={`tab-item ${activeTab === 'dados' ? 'active' : ''}`}
+          onClick={() => setActiveTab('dados')}
+        >
+          Dados do Atleta
+        </button>
+        <button 
+          type="button"
+          className={`tab-item ${activeTab === 'diagnostico' ? 'active' : ''}`}
+          onClick={() => setActiveTab('diagnostico')}
+        >
+          Diagnóstico
+        </button>
       </div>
 
-      {/* Aba de Laudo (Pág 6 do PDF) */}
-      <div className="tab-content" style={{ marginTop: '30px' }}>
-        <h3>Laudo do Exame</h3>
-        {exame.resultado ? (
-          <div>
-            <p>Laudo disponível:</p>
-            {/* Aqui você pode renderizar o PDF ou um link para download */}
-            <a href={exame.resultado} target="_blank" rel="noopener noreferrer">Visualizar Laudo (PDF)</a>
-            <p>Status: {exame.laudoLiberado ? 'Liberado' : 'Não Liberado'}</p>
+      {/* --- CONTEÚDO DA ABA: DADOS DO ATLETA --- */}
+      {activeTab === 'dados' && (
+        <div className="card" style={{backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'}}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            
+            <div className="form-group">
+              <label>Atleta:</label>
+              <select 
+                className="modern-input" 
+                name="atleta" 
+                value={formData.atleta} 
+                onChange={handleChange} 
+                required
+              >
+                <option value="">Selecione o Atleta...</option>
+                {atletas.map(a => (
+                  <option key={a._id} value={a._id}>{a.nome} - {a.cpf}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Fisioterapeuta Responsável:</label>
+              <select 
+                className="modern-input" 
+                name="fisioterapeuta" 
+                value={formData.fisioterapeuta} 
+                onChange={handleChange} 
+                required
+              >
+                <option value="">Selecione o Fisioterapeuta...</option>
+                {fisioterapeutas.map(f => (
+                  <option key={f._id} value={f._id}>{f.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Tipo de Exame:</label>
+              <input 
+                className="modern-input" 
+                name="tipoExame" 
+                value={formData.tipoExame} 
+                onChange={handleChange} 
+                placeholder="Ex: Ressonância Magnética"
+                required 
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Data do Exame:</label>
+              <input 
+                className="modern-input" 
+                type="date" 
+                name="dataExame" 
+                value={formData.dataExame} 
+                onChange={handleChange} 
+                required 
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Status:</label>
+              <select 
+                className="modern-input" 
+                name="status" 
+                value={formData.status} 
+                onChange={handleChange}
+              >
+                <option value="Em Andamento">Em Andamento</option>
+                <option value="Concluído">Concluído</option>
+                <option value="Liberado">Liberado</option>
+              </select>
+            </div>
+
           </div>
-        ) : (
-          <p>Nenhum laudo disponível ainda.</p>
-        )}
-        {!exame.laudoLiberado && (
-          <button onClick={handleLiberarLaudo}>Liberar Laudo</button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* As abas de Anamnese, Diagnóstico, Histórico exigiriam mais lógica
-          para buscar os dados relacionados e renderizá-los aqui,
-          mas o padrão seria semelhante ao "Dados do Atleta". */}
-    </div>
+      {/* --- CONTEÚDO DA ABA: DIAGNÓSTICO --- */}
+      {activeTab === 'diagnostico' && (
+        <div className="card" style={{backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'}}>
+          
+          <div className="tab-content-header">
+            <h3>Laudo Médico</h3>
+            {/* Botão de PDF no canto superior direito da aba */}
+            <button 
+              type="button" 
+              className="btn btn-primary" 
+              onClick={generatePDF}
+              title="Gerar PDF com os dados atuais"
+            >
+              Visualizar Laudo (PDF)
+            </button>
+          </div>
+          
+          <div className="form-group">
+            <label>Descrição Detalhada / Parecer:</label>
+            <textarea 
+              className="modern-input" 
+              name="resultado" 
+              value={formData.resultado} 
+              onChange={handleChange} 
+              placeholder="Digite aqui o diagnóstico, observações clínicas e conclusões do exame..."
+              style={{ minHeight: '300px' }}
+            ></textarea>
+          </div>
+        </div>
+      )}
+    </form>
   );
 };
 

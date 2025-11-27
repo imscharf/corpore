@@ -1,66 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import exameService from '../services/exameService'; // Crie este serviço
+import { useNavigate } from 'react-router-dom';
+import exameService from '../services/exameService';
 
 const ExamesList = () => {
   const [exames, setExames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExames = async () => {
       try {
-        // Por enquanto, busca todos os exames. Em um cenário real, filtraria por atleta.
         const data = await exameService.getExames();
         setExames(data);
       } catch (err) {
-        setError('Erro ao carregar exames.');
         console.error(err);
-      } finally {
-        setLoading(false);
       }
     };
-
     fetchExames();
   }, []);
 
-  if (loading) return <div>Carregando exames...</div>;
-  if (error) return <div>{error}</div>;
-
   return (
     <div>
-      <h2>Listagem de Exames</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Atendimento</th>
-            <th>Atleta</th>
-            <th>Exame</th>
-            <th>Status</th>
-            <th>Resultado</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {exames.map((exame) => (
-            <tr key={exame._id}>
-              <td>{exame._id.slice(-6)}</td> {/* Simula um número de atendimento */}
-              <td>{exame.atleta ? exame.atleta.nome : 'N/A'}</td> {/* Popule o atleta no backend */}
-              <td>{exame.tipoExame}</td>
-              <td>{exame.status}</td>
-              <td>{exame.laudoLiberado ? 'Liberado' : 'Em Andamento'}</td>
-              <td>
-                <Link to={`/exames/${exame._id}`}>Abrir</Link>
-                {exame.laudoLiberado && (
-                  <button onClick={() => alert('Download do laudo (em desenvolvimento)')}>
-                    Baixar PDF
-                  </button>
-                )}
-              </td>
+      <h2>Exames Registrados</h2>
+
+      {/* Botão alinhado à esquerda e verde */}
+      <div className="action-buttons">
+        <button className="btn btn-success" onClick={() => navigate('/exames/novo')}>
+          + Novo Exame
+        </button>
+      </div>
+
+      <div className="table-container">
+        <table className="modern-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Atleta</th>
+              <th>Tipo de Exame</th>
+              <th>Status</th>
+              <th>Resultado</th>
+              <th style={{textAlign: 'center'}}>Ações</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {exames.map((exame) => (
+              <tr key={exame._id}>
+                <td>{new Date(exame.dataExame).toLocaleDateString('pt-BR')}</td>
+                <td>{exame.atleta ? exame.atleta.nome : 'N/A'}</td>
+                <td>{exame.tipoExame}</td>
+                <td>
+                  {/* Pequena formatação condicional de status se desejar */}
+                  <span style={{
+                    fontWeight: 'bold', 
+                    color: exame.status === 'Liberado' ? '#28a745' : '#e67e22'
+                  }}>
+                    {exame.status}
+                  </span>
+                </td>
+                <td>{exame.laudoLiberado ? 'Disponível' : 'Pendente'}</td>
+                <td style={{textAlign: 'center'}}>
+                  {/* Botão "Abrir" explícito */}
+                  <button 
+                    className="btn btn-primary btn-sm"
+                    onClick={() => navigate(`/exames/${exame._id}`)}
+                  >
+                    Abrir
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {exames.length === 0 && (
+              <tr>
+                <td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>
+                  Nenhum exame registrado.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
