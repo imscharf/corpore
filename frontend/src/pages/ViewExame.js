@@ -10,25 +10,21 @@ const ViewExame = ({ mode = 'view' }) => {
   const navigate = useNavigate();
   const isCreateMode = mode === 'create';
   
-  // Estado das Abas: 'dados' ou 'diagnostico'
   const [activeTab, setActiveTab] = useState('dados');
 
-  // Estado do Formulário
   const [formData, setFormData] = useState({
     atleta: '',
     fisioterapeuta: '',
     tipoExame: '',
     dataExame: new Date().toISOString().split('T')[0],
     status: 'Em Andamento',
-    resultado: '', // Campo livre para diagnóstico
+    resultado: '',
     laudoLiberado: false
   });
 
-  // Listas para os selects
   const [atletas, setAtletas] = useState([]);
   const [fisioterapeutas, setFisioterapeutas] = useState([]);
 
-  // Carregar dados iniciais
   useEffect(() => {
     const loadDependencies = async () => {
       try {
@@ -48,7 +44,6 @@ const ViewExame = ({ mode = 'view' }) => {
       const loadExame = async () => {
         try {
           const exame = await exameService.getExameById(id);
-          // Tratamento para garantir que pegamos o ID se o objeto vier populado
           const atletaId = exame.atleta && exame.atleta._id ? exame.atleta._id : exame.atleta;
           const fisioId = exame.fisioterapeuta && exame.fisioterapeuta._id ? exame.fisioterapeuta._id : exame.fisioterapeuta;
           
@@ -87,59 +82,47 @@ const ViewExame = ({ mode = 'view' }) => {
     }
   };
 
-  // Função de Geração de PDF
   const generatePDF = () => {
     const doc = new jsPDF();
-    
-    // Buscar nomes completos baseados nos IDs selecionados
     const atletaObj = atletas.find(a => a._id === formData.atleta);
     const atletaNome = atletaObj?.nome || 'Não informado';
-    
     const fisioObj = fisioterapeutas.find(f => f._id === formData.fisioterapeuta);
     const fisioNome = fisioObj?.nome || 'Não informado';
     const fisioCrefito = fisioObj?.crefito || '';
 
-    // --- Cabeçalho do PDF ---
     doc.setFontSize(22);
-    doc.setTextColor(0, 86, 179); // Azul
+    doc.setTextColor(0, 86, 179);
     doc.text("CORPORE - Relatório Clínico", 105, 20, null, null, "center");
     
     doc.setLineWidth(0.5);
     doc.setDrawColor(200, 200, 200);
     doc.line(20, 25, 190, 25);
 
-    // --- Informações Gerais ---
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
     
-    // Data
     doc.setFont("helvetica", "bold");
     doc.text(`Data do Exame:`, 20, 40);
     doc.setFont("helvetica", "normal");
     doc.text(new Date(formData.dataExame).toLocaleDateString('pt-BR'), 60, 40);
 
-    // Paciente
     doc.setFont("helvetica", "bold");
     doc.text(`Paciente (Atleta):`, 20, 50);
     doc.setFont("helvetica", "normal");
     doc.text(atletaNome, 60, 50);
 
-    // Fisioterapeuta
     doc.setFont("helvetica", "bold");
     doc.text(`Fisioterapeuta:`, 20, 60);
     doc.setFont("helvetica", "normal");
     doc.text(`${fisioNome} (CREFITO: ${fisioCrefito})`, 60, 60);
 
-    // Tipo
     doc.setFont("helvetica", "bold");
     doc.text(`Tipo de Exame:`, 20, 70);
     doc.setFont("helvetica", "normal");
     doc.text(formData.tipoExame, 60, 70);
 
-    // Linha divisória
     doc.line(20, 80, 190, 80);
 
-    // --- Diagnóstico ---
     doc.setFontSize(16);
     doc.setTextColor(0, 86, 179);
     doc.text("Diagnóstico / Laudo", 20, 95);
@@ -148,11 +131,9 @@ const ViewExame = ({ mode = 'view' }) => {
     doc.setTextColor(50, 50, 50);
     doc.setFont("helvetica", "normal");
     
-    // Quebra de texto automática
     const textLines = doc.splitTextToSize(formData.resultado || "Sem diagnóstico informado.", 170);
     doc.text(textLines, 20, 105);
 
-    // Salvar arquivo
     doc.save(`Laudo_${atletaNome.replace(/\s+/g, '_')}.pdf`);
   };
 
@@ -160,21 +141,13 @@ const ViewExame = ({ mode = 'view' }) => {
     <form onSubmit={handleSave}>
       <h2>{isCreateMode ? 'Novo Exame' : 'Detalhes do Exame'}</h2>
 
-      {/* --- BOTÕES DE AÇÃO (Topo Esquerdo) --- */}
       <div className="action-buttons">
-         <button type="submit" className="btn btn-success">
-            Salvar
-         </button>
-         <button 
-            type="button" 
-            className="btn btn-danger" 
-            onClick={() => navigate('/exames')}
-         >
+         <button type="submit" className="btn btn-success">Salvar</button>
+         <button type="button" className="btn btn-danger" onClick={() => navigate('/exames')}>
             {isCreateMode ? 'Cancelar' : 'Voltar'}
          </button>
       </div>
 
-      {/* --- NAVEGAÇÃO DE ABAS --- */}
       <div className="tabs-header">
         <button 
           type="button"
@@ -192,20 +165,13 @@ const ViewExame = ({ mode = 'view' }) => {
         </button>
       </div>
 
-      {/* --- CONTEÚDO DA ABA: DADOS DO ATLETA --- */}
       {activeTab === 'dados' && (
-        <div className="card" style={{backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'}}>
+        // REMOVIDO STYLE HARDCODED
+        <div className="card">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            
             <div className="form-group">
               <label>Atleta:</label>
-              <select 
-                className="modern-input" 
-                name="atleta" 
-                value={formData.atleta} 
-                onChange={handleChange} 
-                required
-              >
+              <select className="modern-input" name="atleta" value={formData.atleta} onChange={handleChange} required>
                 <option value="">Selecione o Atleta...</option>
                 {atletas.map(a => (
                   <option key={a._id} value={a._id}>{a.nome} - {a.cpf}</option>
@@ -215,13 +181,7 @@ const ViewExame = ({ mode = 'view' }) => {
 
             <div className="form-group">
               <label>Fisioterapeuta Responsável:</label>
-              <select 
-                className="modern-input" 
-                name="fisioterapeuta" 
-                value={formData.fisioterapeuta} 
-                onChange={handleChange} 
-                required
-              >
+              <select className="modern-input" name="fisioterapeuta" value={formData.fisioterapeuta} onChange={handleChange} required>
                 <option value="">Selecione o Fisioterapeuta...</option>
                 {fisioterapeutas.map(f => (
                   <option key={f._id} value={f._id}>{f.nome}</option>
@@ -231,59 +191,32 @@ const ViewExame = ({ mode = 'view' }) => {
 
             <div className="form-group">
               <label>Tipo de Exame:</label>
-              <input 
-                className="modern-input" 
-                name="tipoExame" 
-                value={formData.tipoExame} 
-                onChange={handleChange} 
-                placeholder="Ex: Ressonância Magnética"
-                required 
-              />
+              <input className="modern-input" name="tipoExame" value={formData.tipoExame} onChange={handleChange} placeholder="Ex: Ressonância Magnética" required />
             </div>
 
             <div className="form-group">
               <label>Data do Exame:</label>
-              <input 
-                className="modern-input" 
-                type="date" 
-                name="dataExame" 
-                value={formData.dataExame} 
-                onChange={handleChange} 
-                required 
-              />
+              <input className="modern-input" type="date" name="dataExame" value={formData.dataExame} onChange={handleChange} required />
             </div>
 
             <div className="form-group">
               <label>Status:</label>
-              <select 
-                className="modern-input" 
-                name="status" 
-                value={formData.status} 
-                onChange={handleChange}
-              >
+              <select className="modern-input" name="status" value={formData.status} onChange={handleChange}>
                 <option value="Em Andamento">Em Andamento</option>
                 <option value="Concluído">Concluído</option>
                 <option value="Liberado">Liberado</option>
               </select>
             </div>
-
           </div>
         </div>
       )}
 
-      {/* --- CONTEÚDO DA ABA: DIAGNÓSTICO --- */}
       {activeTab === 'diagnostico' && (
-        <div className="card" style={{backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'}}>
-          
+        // REMOVIDO STYLE HARDCODED
+        <div className="card">
           <div className="tab-content-header">
             <h3>Laudo Médico</h3>
-            {/* Botão de PDF no canto superior direito da aba */}
-            <button 
-              type="button" 
-              className="btn btn-primary" 
-              onClick={generatePDF}
-              title="Gerar PDF com os dados atuais"
-            >
+            <button type="button" className="btn btn-primary" onClick={generatePDF} title="Gerar PDF">
               Visualizar Laudo (PDF)
             </button>
           </div>
@@ -295,7 +228,7 @@ const ViewExame = ({ mode = 'view' }) => {
               name="resultado" 
               value={formData.resultado} 
               onChange={handleChange} 
-              placeholder="Digite aqui o diagnóstico, observações clínicas e conclusões do exame..."
+              placeholder="Digite aqui o diagnóstico..."
               style={{ minHeight: '300px' }}
             ></textarea>
           </div>

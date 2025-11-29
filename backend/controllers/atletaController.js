@@ -26,34 +26,34 @@ const getAtletaById = async (req, res) => {
 
 // @desc    Create a new atleta
 const createAtleta = async (req, res) => {
-  // Destructurando todos os campos possíveis
   const {
     nome, sexo, dataNascimento, endereco, equipe, uf, rg, cpf, peso, altura,
-    email, telefone, horasTreinamento, inicioCarreira, historicoLesoes,
-    tratamentosRealizados
+    email, telefone, horasTreinamento, inicioCarreira, 
+    historicoLesoes, // Agora espera um array
+    tratamentosRealizados // Agora espera um array
   } = req.body;
 
   try {
     const atleta = new Atleta({
       nome, sexo, dataNascimento, endereco, equipe, uf, rg, cpf, peso, altura,
-      email, telefone, horasTreinamento, inicioCarreira, historicoLesoes,
+      email, telefone, horasTreinamento, inicioCarreira, 
+      historicoLesoes, 
       tratamentosRealizados
     });
 
     const createdAtleta = await atleta.save();
     res.status(201).json(createdAtleta);
   } catch (error) {
-    // Retorna o erro exato do banco para ajudar no debug (ex: cpf duplicado)
     res.status(400).json({ message: error.message });
   }
 };
 
 // @desc    Update an atleta
 const updateAtleta = async (req, res) => {
-  // ... lógica de destructuring similar ao create
   const {
     nome, sexo, dataNascimento, endereco, equipe, uf, rg, cpf, peso, altura,
-    email, telefone, horasTreinamento, inicioCarreira, historicoLesoes,
+    email, telefone, horasTreinamento, inicioCarreira, 
+    historicoLesoes, 
     tratamentosRealizados
   } = req.body;
 
@@ -64,8 +64,7 @@ const updateAtleta = async (req, res) => {
       atleta.nome = nome || atleta.nome;
       atleta.sexo = sexo || atleta.sexo;
       atleta.dataNascimento = dataNascimento || atleta.dataNascimento;
-      atleta.endereco = endereco || atleta.endereco; // Atualiza endereço
-      // ... atualiza os demais campos
+      atleta.endereco = endereco || atleta.endereco;
       atleta.equipe = equipe || atleta.equipe;
       atleta.uf = uf || atleta.uf;
       atleta.rg = rg || atleta.rg;
@@ -76,8 +75,10 @@ const updateAtleta = async (req, res) => {
       atleta.telefone = telefone || atleta.telefone;
       atleta.horasTreinamento = horasTreinamento || atleta.horasTreinamento;
       atleta.inicioCarreira = inicioCarreira || atleta.inicioCarreira;
-      atleta.historicoLesoes = historicoLesoes || atleta.historicoLesoes;
-      atleta.tratamentosRealizados = tratamentosRealizados || atleta.tratamentosRealizados;
+      
+      // Atualiza arrays se forem passados
+      if (historicoLesoes) atleta.historicoLesoes = historicoLesoes;
+      if (tratamentosRealizados) atleta.tratamentosRealizados = tratamentosRealizados;
 
       const updatedAtleta = await atleta.save();
       res.json(updatedAtleta);

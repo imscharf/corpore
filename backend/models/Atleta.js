@@ -4,7 +4,7 @@ const atletaSchema = mongoose.Schema({
   nome: { type: String, required: true },
   sexo: { type: String, required: true },
   dataNascimento: { type: Date, required: true },
-  endereco: { type: String }, // Campo adicionado
+  endereco: { type: String },
   equipe: { type: String },
   uf: { type: String },
   rg: { type: String },
@@ -15,8 +15,22 @@ const atletaSchema = mongoose.Schema({
   telefone: { type: String },
   horasTreinamento: { type: Number },
   inicioCarreira: { type: Date },
-  historicoLesoes: { type: String },
-  tratamentosRealizados: { type: String },
+  
+  // Alterado de String para Array de Objetos
+  historicoLesoes: [{
+    tipo: String,
+    dataLesao: Date,
+    gravidade: String, // Ex: Leve, Moderada, Grave
+    descricao: String
+  }],
+  
+  // Alterado de String para Array de Objetos
+  tratamentosRealizados: [{
+    tipo: String,
+    dataInicio: Date,
+    dataFim: Date,
+    descricao: String
+  }]
 });
 
 const Atleta = mongoose.model('Atleta', atletaSchema);

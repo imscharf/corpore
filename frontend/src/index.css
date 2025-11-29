@@ -1,29 +1,55 @@
 :root {
-  /* Light Mode Variables (Default) */
+  /* --- LIGHT MODE (Padrão) --- */
   --primary-color: #0056b3;
   --secondary-color: #00a8ff;
   --bg-color: #f4f7f6;
+  
   --sidebar-bg: linear-gradient(180deg, #0056b3 0%, #003366 100%);
   --sidebar-text: #ffffff;
+  
   --text-color: #333333;
+  --label-color: #333333;
+  
   --card-bg: #ffffff;
-  --input-border: #cccccc;
-  --table-header: #e9ecef;
-  --table-hover: #f1f3f5;
+  --card-shadow: rgba(0,0,0,0.1);
+  
+  --input-bg: #f9f9f9;
+  --input-border: #e0e0e0;
+  --input-text: #333333;
+  
+  --table-header-bg: #0056b3;
+  --table-header-text: #ffffff;
+  --table-row-bg: #ffffff;
+  --table-row-hover: #f1f3f5;
+  --table-text: #555555;
+  --table-border: #eeeeee;
 }
 
 [data-theme='dark'] {
-  /* Dark Mode Variables */
-  --primary-color: #3399ff;
+  /* --- DARK MODE --- */
+  --primary-color: #3399ff; /* Azul mais claro para contraste */
   --secondary-color: #0056b3;
-  --bg-color: #121212;
+  --bg-color: #121212; /* Fundo geral muito escuro */
+  
   --sidebar-bg: linear-gradient(180deg, #1f1f1f 0%, #000000 100%);
   --sidebar-text: #e0e0e0;
+  
   --text-color: #e0e0e0;
-  --card-bg: #1e1e1e;
+  --label-color: #cccccc;
+  
+  --card-bg: #1e1e1e; /* Fundo do card cinza escuro */
+  --card-shadow: rgba(0,0,0,0.5);
+  
+  --input-bg: #2c2c2c; /* Input um pouco mais claro que o card */
   --input-border: #444444;
-  --table-header: #333333;
-  --table-hover: #2c2c2c;
+  --input-text: #ffffff;
+  
+  --table-header-bg: #004494;
+  --table-header-text: #ffffff;
+  --table-row-bg: #1e1e1e;
+  --table-row-hover: #333333;
+  --table-text: #dddddd;
+  --table-border: #333333;
 }
 
 body {
@@ -45,8 +71,9 @@ body {
   overflow-y: auto;
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
   color: var(--primary-color);
+  margin-top: 0;
 }
 
 /* Common Card Style */
@@ -54,6 +81,7 @@ h1, h2, h3 {
   background-color: var(--card-bg);
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px var(--card-shadow);
   margin-bottom: 20px;
+  border: 1px solid var(--input-border); /* Borda sutil para dark mode */
 }
