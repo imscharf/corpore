@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
+import AccessibilityBar from './components/AccessibilityBar'; // Importação nova
 import AtletaList from './pages/AtletaList';
 import AtletaForm from './pages/AtletaForm.js';
 import ExamesList from './pages/ExamesList';
@@ -23,21 +24,27 @@ function App() {
   return (
     <Router>
       <div className="app-container">
+        {/* Acessibilidade 4: Link Pular para Conteúdo */}
+        <a href="#main-content" className="skip-link">
+          Pular para o conteúdo principal
+        </a>
+
         <Sidebar theme={theme} toggleTheme={toggleTheme} />
-        <main className="content">
+        
+        <main className="content" id="main-content" tabIndex="-1">
+          {/* Acessibilidades 2 e 3: Barra de Ferramentas */}
+          <AccessibilityBar />
+
           <Routes>
             <Route path="/" element={<Navigate to="/cadastro/atleta" replace />} />
             
-            {/* Fluxo de Atleta */}
             <Route path="/cadastro/atleta" element={<AtletaList />} />
             <Route path="/cadastro/atleta/novo" element={<AtletaForm />} />
             <Route path="/cadastro/atleta/:id" element={<AtletaForm />} />
 
-            {/* Rotas de Menu sem tela específica (Placeholder) */}
             <Route path="/cadastro/fisioterapeuta" element={<div><h2>Cadastro de Fisioterapeuta</h2><p>Funcionalidade indisponível no momento.</p></div>} />
             <Route path="/agendamentos" element={<div><h2>Agendamentos</h2><p>Funcionalidade indisponível no momento.</p></div>} />
 
-            {/* Fluxo de Exames */}
             <Route path="/exames" element={<ExamesList />} />
             <Route path="/exames/novo" element={<ViewExame mode="create" />} />
             <Route path="/exames/:id" element={<ViewExame mode="view" />} />

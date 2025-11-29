@@ -85,3 +85,63 @@ h1, h2, h3, h4 {
   margin-bottom: 20px;
   border: 1px solid var(--input-border); /* Borda sutil para dark mode */
 }
+
+/* --- ACESSIBILIDADE 4: Link Pular para Conteúdo --- */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 270px; /* Logo após a sidebar */
+  background: var(--primary-color);
+  color: white;
+  padding: 8px 15px;
+  z-index: 9999;
+  transition: top 0.3s;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid #ffcc00; /* Amarelo para alto contraste no foco */
+}
+
+/* --- ACESSIBILIDADE 5: Indicador de Foco Aprimorado --- */
+/* Garante que quem navega por teclado saiba onde está */
+:focus-visible {
+  outline: 3px solid #ffcc00 !important; /* Amarelo padrão de acessibilidade */
+  outline-offset: 2px;
+}
+
+/* --- BARRA DE ACESSIBILIDADE FLUTUANTE --- */
+.accessibility-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.accessibility-bar button {
+  background-color: var(--card-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-color);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.accessibility-bar button:hover {
+  background-color: var(--table-row-hover);
+  transform: translateY(-2px);
+}
+
+.accessibility-bar button.active {
+  background-color: var(--text-color);
+  color: var(--bg-color);
+  border-color: var(--text-color);
+}
