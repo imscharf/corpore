@@ -26,9 +26,20 @@ app.use('/api/fisioterapeutas', fisioterapeutaRoutes);
 app.use('/api/diagnosticos', diagnosticoRoutes);
 app.use('/api/anamneses', anamneseRoutes);
 app.use('/api/exames', exameRoutes);
-app.use('/api/agendamentos', agendamentoRoutes); // Usar a nova rota
+app.use('/api/agendamentos', agendamentoRoutes);
 
+// Rota raiz para teste
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
 
+// CONFIGURAÇÃO PARA O VERCEL
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Só inicia o servidor se NÃO estivermos no ambiente do Vercel (para rodar localmente)
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+// Exporta o app para o Vercel tratar como Serverless Function
+module.exports = app;
