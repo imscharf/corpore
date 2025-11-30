@@ -30,7 +30,9 @@ const AtletaForm = () => {
             ...atleta,
             peso: atleta.peso || '',
             altura: atleta.altura || '',
-            horasTreinamento: atleta.horasTreinamento || ''
+            horasTreinamento: atleta.horasTreinamento || '',
+            historicoLesoes: atleta.historicoLesoes || '',
+            tratamentosRealizados: atleta.tratamentosRealizados || ''
           });
 
           const allExames = await exameService.getExames();
@@ -47,14 +49,9 @@ const AtletaForm = () => {
   // --- Lógica de Formatação de Telefone (Máscara) ---
   const formatPhone = (value) => {
     if (!value) return "";
-    
-    // Remove tudo que não é dígito
     value = value.replace(/\D/g, "");
-    
-    // Limita a 11 dígitos
     value = value.substring(0, 11);
 
-    // Formata (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
     if (value.length > 10) {
       value = value.replace(/^(\d\d)(\d{5})(\d{4}).*/, "($1) $2-$3");
     } else if (value.length > 5) {
@@ -71,7 +68,6 @@ const AtletaForm = () => {
     const { name, value } = e.target;
     let finalValue = value;
 
-    // Se o campo for telefone, aplica a máscara
     if (name === 'telefone') {
       finalValue = formatPhone(value);
     }
@@ -84,12 +80,29 @@ const AtletaForm = () => {
     try {
       const dataToSend = { ...formData };
       
-      const numericFields = ['peso', 'altura', 'horasTreinamento'];
-      numericFields.forEach(field => {
-        if (dataToSend[field] === '') delete dataToSend[field];
-      });
+      // --- CORREÇÃO AQUI ---
+      // Lista de campos que são opcionais. Se estiverem vazios (""), removemos do objeto
+      // para que o Backend não tente validar uma string vazia como se fosse Data ou Objeto.
+      const optionalFields = [
+        'peso', 
+        'altura', 
+        'horasTreinamento', 
+        'inicioCarreira', 
+        'historicoLesoes', 
+        'tratamentosRealizados',
+        'equipe',
+        'uf',
+        'rg',
+        'telefone',
+        'endereco'
+      ];
 
-      if (dataToSend.inicioCarreira === '') delete dataToSend.inicioCarreira;
+      optionalFields.forEach(field => {
+        if (dataToSend[field] === '' || dataToSend[field] === null) {
+          delete dataToSend[field];
+        }
+      });
+      // ---------------------
 
       if (isEdit) {
         await atletaService.updateAtleta(id, dataToSend);
@@ -101,7 +114,7 @@ const AtletaForm = () => {
       }
     } catch (error) {
       console.error(error);
-      const msg = error.response?.data?.message || 'Erro ao salvar. Verifique se o CPF ou Email já estão cadastrados.';
+      const msg = error.response?.data?.message || 'Erro ao salvar. Verifique os dados.';
       alert(msg);
     }
   };
@@ -110,13 +123,11 @@ const AtletaForm = () => {
     <form onSubmit={handleSubmit}>
       <h2>{isEdit ? `Editar Atleta: ${formData.nome}` : 'Novo Atleta'}</h2>
       
-      {/* Botões alinhados à esquerda */}
       <div className="action-buttons">
          <button type="submit" className="btn btn-success">Salvar</button>
          <button type="button" className="btn btn-danger" onClick={() => navigate('/cadastro/atleta')}>Cancelar</button>
       </div>
 
-      {/* CARD 1: Informações Pessoais */}
       <div className="card">
         <h3>Informações Pessoais</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
@@ -173,7 +184,6 @@ const AtletaForm = () => {
         </div>
       </div>
 
-      {/* CARD 2: Histórico */}
       <div className="card">
         <h3>Histórico Esportivo & Médico</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
